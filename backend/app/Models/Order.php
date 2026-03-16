@@ -28,7 +28,17 @@ class Order {
             );
         }
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Добавляем items для каждого заказа
+        foreach ($orders as &$order) {
+            $itemsStmt = $this->conn->prepare("SELECT * FROM order_items WHERE order_id = :order_id");
+            $itemsStmt->bindValue(':order_id', $order['id'], PDO::PARAM_INT);
+            $itemsStmt->execute();
+            $order['items'] = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        return $orders;
     }
 
     public function find($id)
@@ -109,7 +119,7 @@ class Order {
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
     }
-
+        
     public function delete($id)
     {
         // Удаляем элементы заказа

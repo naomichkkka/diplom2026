@@ -114,7 +114,7 @@ const ProfilePage = () => {
         </aside>
 
         <main className="profile-main">
-          {activeTab === 'orders' && (
+              {activeTab === 'orders' && (
             <section className="profile-orders">
               <h3 className="profile-orders__title">История заказов</h3>
               
@@ -139,14 +139,16 @@ const ProfilePage = () => {
                       <div className="profile-order__left">
                         <p className="profile-order__id">Заказ #{order.id}</p>
                         <p className="profile-order__date">
-                          {new Date(order.date).toLocaleDateString('ru-RU', {
+                          {new Date(order.created_at || order.date).toLocaleDateString('ru-RU', {
                             day: 'numeric',
                             month: 'long',
                             year: 'numeric'
                           })}
                         </p>
                         <p className="profile-order__items">
-                          {order.items?.length || order.items || '—'} товар{(order.items?.length || order.items || 0) !== 1 ? 'ов' : ''}
+                          {order.items && order.items.length > 0 
+                            ? order.items.map(item => item.product_name).join(', ')
+                            : 'Товары в заказе'}
                         </p>
                       </div>
                       <div className="profile-order__right">
@@ -168,40 +170,38 @@ const ProfilePage = () => {
             <section className="profile-settings">
               <h3 className="profile-settings__title">Настройки профиля</h3>
               
-              <div className="form-card">
-                <div className="form-card__fields">
-                  <div className="form-field">
-                    <label>Имя</label>
-                    <input 
-                      type="text" 
-                      className="input" 
-                      defaultValue={user?.name || ''}
-                      disabled
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>E-mail</label>
-                    <input 
-                      type="email" 
-                      className="input" 
-                      defaultValue={user?.email || ''}
-                      disabled
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Роль</label>
-                    <input 
-                      type="text" 
-                      className="input" 
-                      defaultValue={user?.role === 'admin' ? 'Администратор' : 'Пользователь'}
-                      disabled
-                    />
-                  </div>
+              <div className="profile-settings__fields">
+                <div className="form-field">
+                  <label>Имя</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    defaultValue={user?.name || ''}
+                    disabled
+                  />
                 </div>
-                <p className="profile-settings__note">
-                  Для изменения данных обратитесь к администратору.
-                </p>
+                <div className="form-field">
+                  <label>E-mail</label>
+                  <input 
+                    type="email" 
+                    className="input" 
+                    defaultValue={user?.email || ''}
+                    disabled
+                  />
+                </div>
+                <div className="form-field">
+                  <label>Роль</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    defaultValue={user?.role === 'admin' ? 'Администратор' : 'Пользователь'}
+                    disabled
+                  />
+                </div>
               </div>
+              <p className="profile-settings__note">
+                Для изменения данных обратитесь к администратору.
+              </p>
             </section>
           )}
         </main>

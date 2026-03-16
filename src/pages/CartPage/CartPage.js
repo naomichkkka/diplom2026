@@ -8,11 +8,20 @@ import { API_ROOT } from '../../services/api';
 const CartPage = () => {
   const { items, updateQty, removeItem, clear, createOrder } = useCart();
   const { showToast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
-  const [orderResult, setOrderResult] = useState(null);
+  const [orderResult, setOrderResult] = useState(false);
+  const [customerData, setCustomerData] = useState({
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    delivery_address: '',
+    delivery_method: 'Самовывоз',
+    payment_method: 'Наличные',
+    notes: ''
+  });
 
   const total = useMemo(() => 
     items.reduce((sum, item) => sum + Number(item.price) * item.qty, 0), 
@@ -31,14 +40,49 @@ const CartPage = () => {
 
     if (items.length === 0) return;
 
+    // Валидация
+    if (!customerData.customer_name.trim()) {
+      showToast('Введите имя', { type: 'error' });
+      return;
+    }
+    if (!customerData.customer_phone.trim()) {
+      showToast('Введите телефон', { type: 'error' });
+      return;
+    }
+    if (!customerData.customer_email.trim()) {
+      showToast('Введите email', { type: 'error' });
+      return;
+    }
+
     setLoading(true);
     setOrderResult(null);
 
     try {
-      const res = await createOrder({ items, total });
+      const orderData = {
+        user_id: user?.id || 1,
+        ...customerData,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          qty: item.qty
+        })),
+        total
+      };
       
-      if (res && res.success) {
+      const res = await createOrder(orderData);
+      
+      if (res && (res.ok || res.success)) {
         clear();
+        setCustomerData({
+          customer_name: '',
+          customer_phone: '',
+          customer_email: '',
+          delivery_address: '',
+          delivery_method: 'Самовывоз',
+          payment_method: 'Наличные',
+          notes: ''
+        });
         setOrderResult(res.order);
         showToast(
           res.isMock 
@@ -53,6 +97,11 @@ const CartPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCustomerData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleRemoveItem = (item) => {
@@ -201,7 +250,107 @@ const CartPage = () => {
         </div>
 
         <aside className="cart-page__summary">
-          <h3 className="cart-page__summary-title">Итого</h3>
+          <h3 className="cart-page__summary-title">Оформление заказа</h3>
+          
+          <div className="form-field">
+            <label htmlFor="customer_name">Имя *</label>
+            <input
+              id="customer_name"
+              name="customer_name"
+              type="text"
+              className="input"
+              value={customerData.customer_name}
+              onChange={handleInputChange}
+              placeholder="Ваше имя"
+              required
+            />
+          </div>
+          
+          <div className="form-field">
+            <label htmlFor="customer_phone">Телефон *</label>
+            <input
+              id="customer_phone"
+              name="customer_phone"
+              type="tel"
+              className="input"
+              value={customerData.customer_phone}
+              onChange={handleInputChange}
+              placeholder="+7 (999) 123-45-67"
+              required
+            />
+          </div>
+          
+          <div className="form-field">
+            <label htmlFor="customer_email">Email *</label>
+            <input
+              id="customer_email"
+              name="customer_email"
+              type="email"
+              className="input"
+              value={customerData.customer_email}
+              onChange={handleInputChange}
+              placeholder="example@mail.ru"
+              required
+            />
+          </div>
+          
+          <div className="form-field">
+            <label htmlFor="delivery_method">Способ получения</label>
+            <select
+              id="delivery_method"
+              name="delivery_method"
+              className="input"
+              value={customerData.delivery_method}
+              onChange={handleInputChange}
+            >
+              <option value="Самовывоз">Самовывоз</option>
+              <option value="Доставка">Доставка</option>
+            </select>
+          </div>
+          
+          {customerData.delivery_method === 'Доставка' && (
+            <div className="form-field">
+              <label htmlFor="delivery_address">Адрес доставки</label>
+              <textarea
+                id="delivery_address"
+                name="delivery_address"
+                className="input"
+                value={customerData.delivery_address}
+                onChange={handleInputChange}
+                placeholder="Улица, дом, квартира"
+                rows={2}
+              />
+            </div>
+          )}
+          
+          <div className="form-field">
+            <label htmlFor="payment_method">Оплата</label>
+            <select
+              id="payment_method"
+              name="payment_method"
+              className="input"
+              value={customerData.payment_method}
+              onChange={handleInputChange}
+            >
+              <option value="Наличные">Наличные при получении</option>
+              <option value="Карта">Оплата картой</option>
+              <option value="Онлайн">Онлайн перевод</option>
+            </select>
+          </div>
+          
+          <div className="form-field">
+            <label htmlFor="notes">Комментарий</label>
+            <textarea
+              id="notes"
+              name="notes"
+              className="input"
+              value={customerData.notes}
+              onChange={handleInputChange}
+              placeholder="Пожелания к заказу"
+              rows={2}
+            />
+          </div>
+          
           <div className="cart-page__summary-row">
             <span>Товаров:</span>
             <span>{totalItems}</span>
@@ -210,9 +359,6 @@ const CartPage = () => {
             <span>К оплате:</span>
             <span>{total.toLocaleString('ru-RU')} ₽</span>
           </div>
-          <p className="cart-page__summary-note">
-            Доставка рассчитывается при подтверждении заказа менеджером.
-          </p>
           <button 
             type="button" 
             className="btn btn--primary cart-page__btn-main" 
