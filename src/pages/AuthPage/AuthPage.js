@@ -1,7 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 
 const AuthPage = () => {
   const [mode, setMode] = useState('login');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const { login, register, isAuthenticated, isLoading, error, clearError } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect если уже авторизован
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/profile';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
+
+  // Очистка ошибок при смене режима
+  useEffect(() => {
+    clearError();
+    setFormData({ name: '', email: '', password: '' });
+  }, [mode, clearError]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    clearError();
+
+    let result;
+    if (mode === 'login') {
+      result = await login(formData.email, formData.password);
+    } else {
+      result = await register(formData.name, formData.email, formData.password);
+    }
+
+    setLoading(false);
+
+    if (result.success) {
+      showToast(
+        mode === 'login' ? 'Добро пожаловать!' : 'Аккаунт создан!',
+        { type: 'success' }
+      );
+      navigate('/profile', { replace: true });
+    } else {
+      showToast(result.error || 'Произошла ошибка', { type: 'error' });
+    }
+  };
 
   return (
     <div className="page auth-page">
@@ -22,66 +80,102 @@ const AuthPage = () => {
         <div className="auth-tabs">
           <button
             type="button"
-            className={
-              mode === 'login'
-                ? 'auth-tabs__tab auth-tabs__tab--active'
-                : 'auth-tabs__tab'
-            }
+            className={`auth-tabs__tab ${mode === 'login' ? 'auth-tabs__tab--active' : ''}`}
             onClick={() => setMode('login')}
+            disabled={loading}
           >
             Вход
           </button>
           <button
             type="button"
-            className={
-              mode === 'register'
-                ? 'auth-tabs__tab auth-tabs__tab--active'
-                : 'auth-tabs__tab'
-            }
+            className={`auth-tabs__tab ${mode === 'register' ? 'auth-tabs__tab--active' : ''}`}
             onClick={() => setMode('register')}
+            disabled={loading}
           >
             Регистрация
           </button>
         </div>
 
-        {mode === 'login' ? (
-          <div className="form-card">
-            <h3 className="form-card__title">Вход</h3>
-            <div className="form-card__fields">
-              <div className="form-field">
-                <label htmlFor="login-email">E-mail</label>
-                <input id="login-email" type="email" className="input" />
-              </div>
-              <div className="form-field">
-                <label htmlFor="login-password">Пароль</label>
-                <input id="login-password" type="password" className="input" />
-              </div>
-            </div>
-            <button type="button" className="btn btn--primary auth-page__btn-main">
-              Войти
-            </button>
+        {isLoading || loading ? (
+          <div className="auth-page__loading">
+            <div className="loading-spinner"></div>
+            <p>{mode === 'login' ? 'Выполняем вход...' : 'Создаём аккаунт...'}</p>
           </div>
         ) : (
-          <div className="form-card">
-            <h3 className="form-card__title">Регистрация</h3>
+          <form className="form-card" onSubmit={handleSubmit}>
+            <h3 className="form-card__title">
+              {mode === 'login' ? 'Вход' : 'Регистрация'}
+            </h3>
+            
             <div className="form-card__fields">
+              {mode === 'register' && (
+                <div className="form-field">
+                  <label htmlFor="name">Имя</label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    className="input"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Ваше имя"
+                    required={mode === 'register'}
+                    minLength={2}
+                  />
+                </div>
+              )}
+              
               <div className="form-field">
-                <label htmlFor="register-name">Имя</label>
-                <input id="register-name" type="text" className="input" />
+                <label htmlFor="email">E-mail</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  className="input"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="example@mail.ru"
+                  required
+                />
               </div>
+              
               <div className="form-field">
-                <label htmlFor="register-email">E-mail</label>
-                <input id="register-email" type="email" className="input" />
-              </div>
-              <div className="form-field">
-                <label htmlFor="register-password">Пароль</label>
-                <input id="register-password" type="password" className="input" />
+                <label htmlFor="password">Пароль</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  className="input"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  required
+                  minLength={4}
+                />
               </div>
             </div>
-            <button type="button" className="btn btn--primary auth-page__btn-main">
-              Создать аккаунт
+
+            {error && (
+              <div className="form-card__error">
+                {error}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              className="btn btn--primary auth-page__btn-main"
+              disabled={loading}
+            >
+              {mode === 'login' ? 'Войти' : 'Создать аккаунт'}
             </button>
-          </div>
+
+            {mode === 'login' && (
+              <p className="auth-page__hint">
+                Для демо-входа используйте:<br />
+                <code>admin@sharlandia.ru</code> / <code>admin</code>
+              </p>
+            )}
+          </form>
         )}
       </div>
     </div>

@@ -1,40 +1,62 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { fetchProducts } from '../../services/api';
+import React, { useMemo } from 'react';
+import { useProducts } from '../../hooks';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import CategoryFilter from '../../components/CategoryFilter/CategoryFilter';
 
 const CatalogPage = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState(null);
-
-  useEffect(() => {
-    fetchProducts().then(data => {
-      setProducts(data);
-      setLoading(false);
-    });
-  }, []);
-
-  const categories = useMemo(() => {
-    const unique = new Set();
-    products.forEach(item => {
-      if (item.category) {
-        unique.add(item.category);
-      }
-    });
-    return Array.from(unique);
-  }, [products]);
+  const { products, categories, loading, error } = useProducts();
+  const [activeCategory, setActiveCategory] = React.useState(null);
 
   const visibleProducts = useMemo(() => {
     if (!activeCategory) return products;
     return products.filter(item => item.category === activeCategory);
   }, [products, activeCategory]);
 
+  // Состояние загрузки
   if (loading) {
     return (
       <section className="catalog">
-        <h2 className="catalog__title">Каталог композиций</h2>
-        <p className="catalog__subtitle">Загружаем каталог...</p>
+        <div className="catalog__header">
+          <h2 className="catalog__title">Каталог композиций</h2>
+        </div>
+        <div className="catalog__loading">
+          <div className="loading-spinner"></div>
+          <p>Загружаем каталог...</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Состояние ошибки
+  if (error) {
+    return (
+      <section className="catalog">
+        <div className="catalog__header">
+          <h2 className="catalog__title">Каталог композиций</h2>
+        </div>
+        <div className="catalog__error">
+          <p>{error}</p>
+          <button 
+            className="btn btn--primary" 
+            onClick={() => window.location.reload()}
+          >
+            Повторить попытку
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  // Пустой каталог
+  if (!products.length) {
+    return (
+      <section className="catalog">
+        <div className="catalog__header">
+          <h2 className="catalog__title">Каталог композиций</h2>
+          <p className="catalog__subtitle">
+            В данный момент каталог пуст. Приходите позже!
+          </p>
+        </div>
       </section>
     );
   }
@@ -64,10 +86,16 @@ const CatalogPage = () => {
             category={item.category}
             description={item.description}
             image={item.image_path || item.image}
-            isPopular={item.is_popular || item.popular || item.isPopular || item.badge}
+            isPopular={Number(item.is_popular) || item.popular || item.isPopular || item.badge}
           />
         ))}
       </div>
+
+      {visibleProducts.length === 0 && activeCategory && (
+        <p className="catalog__empty">
+          В категории «{activeCategory}» пока нет товаров
+        </p>
+      )}
     </section>
   );
 };

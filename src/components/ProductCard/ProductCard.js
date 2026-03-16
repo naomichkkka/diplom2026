@@ -1,16 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { API_ROOT } from '../../services/api';
 
 const ProductCard = ({ id, name, price, category, description, isPopular, image }) => {
-  const { items } = useCart();
-  const inCart = items.find(p => p.id === id);
-  const navigate = useNavigate();
-
   return (
-    <article className="product-card" onClick={() => navigate(`/product/${id}`)} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/product/${id}`); }}>
+    <article className="product-card" role="link" tabIndex={0}>
       {isPopular && <div className="product-card__badge">Хит праздников</div>}
       {image ? (
         <div className="product-card__image-wrap">
@@ -32,7 +27,6 @@ const ProductCard = ({ id, name, price, category, description, isPopular, image 
 };
 
 const ProductCardActions = ({ id, name, price, image }) => {
-  const navigate = useNavigate();
   const { addItem, updateQty, removeItem, items } = useCart();
   const { showToast } = useToast();
 

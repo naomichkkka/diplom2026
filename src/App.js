@@ -10,24 +10,27 @@ import AdminPage from './pages/AdminPage/AdminPage';
 import Layout from './components/Layout/Layout';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
+import { AuthProvider } from './hooks/useAuth';
 
 function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <CartProvider>
-          <Layout>
-            <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/catalog" element={<CatalogPage />} />
-            <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/admin" element={<AdminPage />} />
-          </Routes>
-          </Layout>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/catalog" element={<CatalogPage />} />
+                <Route path="/product/:id" element={<ProductPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminPage />} />
+              </Routes>
+            </Layout>
+          </CartProvider>
+        </AuthProvider>
       </ToastProvider>
     </BrowserRouter>
   );

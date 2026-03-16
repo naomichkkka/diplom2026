@@ -9,14 +9,10 @@ export const ToastProvider = ({ children }) => {
     const id = Date.now() + Math.random().toString(36).slice(2, 9);
     const toast = { id, message, ...opts };
     setToasts((t) => [toast, ...t]);
-    const duration = opts.duration || 3000;
+    const duration = opts.duration || (opts.type === 'error' ? 5000 : 3000);
     setTimeout(() => {
       setToasts((t) => t.filter(x => x.id !== id));
     }, duration);
-  }, []);
-
-  const removeToast = useCallback((id) => {
-    setToasts((t) => t.filter(x => x.id !== id));
   }, []);
 
   return (
@@ -24,7 +20,9 @@ export const ToastProvider = ({ children }) => {
       {children}
       <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} className="toast" role="status">
+          <div key={t.id} className={`toast toast--${t.type || 'default'}`} role="status">
+            {t.type === 'success' && '✓ '}
+            {t.type === 'error' && '✕ '}
             {t.message}
           </div>
         ))}

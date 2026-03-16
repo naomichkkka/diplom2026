@@ -1,13 +1,12 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { items } = useCart();
-  const cartTotal = items ? items.reduce((s, it) => s + (it.qty || 0), 0) : 0;
-
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  
   const currentSection = (() => {
     const path = location.pathname;
     if (path.startsWith('/catalog')) return 'catalog';
@@ -17,6 +16,11 @@ const Header = () => {
     if (path.startsWith('/admin')) return 'admin';
     return 'home';
   })();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="app-header">
@@ -34,22 +38,14 @@ const Header = () => {
         <nav className="app-header__nav">
           <button
             type="button"
-            className={
-              currentSection === 'home'
-                ? 'app-header__nav-link app-header__nav-link--active'
-                : 'app-header__nav-link'
-            }
+            className={`app-header__nav-link ${currentSection === 'home' ? 'app-header__nav-link--active' : ''}`}
             onClick={() => navigate('/')}
           >
             Главная
           </button>
           <button
             type="button"
-            className={
-              currentSection === 'catalog'
-                ? 'app-header__nav-link app-header__nav-link--active'
-                : 'app-header__nav-link'
-            }
+            className={`app-header__nav-link ${currentSection === 'catalog' ? 'app-header__nav-link--active' : ''}`}
             onClick={() => navigate('/catalog')}
           >
             Каталог
@@ -57,13 +53,44 @@ const Header = () => {
         </nav>
 
         <div className="app-header__actions">
-          <button
-            type="button"
-            className="app-header__action-btn app-header__action-btn--login"
-            onClick={() => navigate('/auth')}
-          >
-            Войти
-          </button>
+          {isAuthenticated ? (
+            <>
+              <button
+                type="button"
+                className="app-header__action-btn"
+                onClick={() => navigate('/profile')}
+                title="Личный кабинет"
+              >
+                👤 {user?.name || 'Профиль'}
+              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="app-header__action-btn"
+                  onClick={() => navigate('/admin')}
+                  title="Админ-панель"
+                >
+                  ⚙️
+                </button>
+              )}
+              <button
+                type="button"
+                className="app-header__action-btn"
+                onClick={handleLogout}
+                title="Выйти"
+              >
+                🚪
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="app-header__action-btn app-header__action-btn--login"
+              onClick={() => navigate('/auth')}
+            >
+              Войти
+            </button>
+          )}
         </div>
 
         <div className="app-header__contacts">
