@@ -1,19 +1,25 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useFavorites } from '../../hooks/useFavorites';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { favoritesCount } = useFavorites();
   
   const currentSection = (() => {
     const path = location.pathname;
     if (path.startsWith('/catalog')) return 'catalog';
     if (path.startsWith('/cart')) return 'cart';
+    if (path.startsWith('/favorites')) return 'favorites';
     if (path.startsWith('/auth')) return 'auth';
     if (path.startsWith('/profile')) return 'profile';
     if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/about')) return 'about';
+    if (path.startsWith('/contacts')) return 'contacts';
+    if (path.startsWith('/delivery')) return 'delivery';
     return 'home';
   })();
 
@@ -50,9 +56,39 @@ const Header = () => {
           >
             Каталог
           </button>
+          <button
+            type="button"
+            className={`app-header__nav-link ${currentSection === 'about' ? 'app-header__nav-link--active' : ''}`}
+            onClick={() => navigate('/about')}
+          >
+            О нас
+          </button>
+          <button
+            type="button"
+            className={`app-header__nav-link ${currentSection === 'contacts' ? 'app-header__nav-link--active' : ''}`}
+            onClick={() => navigate('/contacts')}
+          >
+            Контакты
+          </button>
+          <button
+            type="button"
+            className={`app-header__nav-link ${currentSection === 'delivery' ? 'app-header__nav-link--active' : ''}`}
+            onClick={() => navigate('/delivery')}
+          >
+            Доставка
+          </button>
         </nav>
 
         <div className="app-header__actions">
+          <button
+            type="button"
+            className="app-header__action-btn app-header__favorites"
+            onClick={() => navigate('/favorites')}
+            title="Избранное"
+          >
+            🤍 {favoritesCount > 0 && <span className="app-header__badge">{favoritesCount}</span>}
+          </button>
+          
           {isAuthenticated ? (
             <>
               <button

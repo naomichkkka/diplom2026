@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -17,17 +18,19 @@ const Footer = () => {
         <div className="app-footer__col">
           <h4 className="app-footer__title">Навигация</h4>
           <ul className="app-footer__list">
-            <li>Главная</li>
-            <li>Каталог композиций</li>
-            <li>Оформление мероприятий</li>
+            <li><Link to="/">Главная</Link></li>
+            <li><Link to="/catalog">Каталог</Link></li>
+            <li><Link to="/about">О нас</Link></li>
+            <li><Link to="/delivery">Доставка</Link></li>
           </ul>
         </div>
 
         <div className="app-footer__col">
           <h4 className="app-footer__title">Контакты</h4>
-          <p className="app-footer__text">Телефон: +7 (999) 123‑45‑67</p>
-          <p className="app-footer__text">WhatsApp / Telegram: по номеру телефона</p>
-          <p className="app-footer__text">Доставка по городу и области</p>
+          <p className="app-footer__text">Телефон: +7 (962) 814-24-28</p>
+          <p className="app-footer__text">Email: sharik22@mail.ru</p>
+          <p className="app-footer__text">WhatsApp / Telegram / Max: по номеру телефона</p>
+          <p className="app-footer__text"><Link to="/contacts">Напишите нам</Link></p>
         </div>
       </div>
       <div className="app-footer__bottom">

@@ -7,6 +7,10 @@ import CartPage from './pages/CartPage/CartPage';
 import AuthPage from './pages/AuthPage/AuthPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import AdminPage from './pages/AdminPage/AdminPage';
+import AboutPage from './pages/AboutPage/AboutPage';
+import ContactsPage from './pages/ContactsPage/ContactsPage';
+import DeliveryPage from './pages/DeliveryPage/DeliveryPage';
+import FavoritesPage from './pages/FavoritesPage/FavoritesPage';
 import Layout from './components/Layout/Layout';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
@@ -24,9 +28,13 @@ function App() {
                 <Route path="/catalog" element={<CatalogPage />} />
                 <Route path="/product/:id" element={<ProductPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contacts" element={<ContactsPage />} />
+                <Route path="/delivery" element={<DeliveryPage />} />
               </Routes>
             </Layout>
           </CartProvider>

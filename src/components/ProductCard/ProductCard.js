@@ -1,12 +1,29 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import { useFavorites } from '../../hooks/useFavorites';
 import { API_ROOT } from '../../services/api';
 
 const ProductCard = ({ id, name, price, category, description, isPopular, image }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite(id);
+
+  const handleFavorite = (e) => {
+    e.stopPropagation();
+    toggleFavorite({ id, name, price, category, description, image, is_popular: isPopular });
+  };
+
   return (
     <article className="product-card" role="link" tabIndex={0}>
       {isPopular && <div className="product-card__badge">Хит праздников</div>}
+      <button
+        type="button"
+        className={`product-card__favorite ${favorite ? 'product-card__favorite--active' : ''}`}
+        onClick={handleFavorite}
+        title={favorite ? 'Удалить из избранного' : 'В избранное'}
+      >
+        {favorite ? '❤️' : '🤍'}
+      </button>
       {image ? (
         <div className="product-card__image-wrap">
           <img className="product-card__image" src={`${API_ROOT}/uploads/products/${image}`} alt={name} />

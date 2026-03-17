@@ -9,14 +9,13 @@ import {
   deleteProduct as apiDeleteProduct,
   fetchAllOrders,
   updateOrderStatus,
-  deleteOrder,
   fetchAllUsers,
   updateUser,
   deleteUser
 } from '../../services/api';
 
 const AdminPage = () => {
-  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isManager, isLoading: authLoading } = useAuth();
   const { products, loading: productsLoading, reload } = useProducts();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -40,12 +39,12 @@ const AdminPage = () => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
 
-  // Redirect если не авторизован или не админ
+  // Redirect если не авторизован или не админ/менеджер
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+    if (!authLoading && (!isAuthenticated || (!isAdmin && !isManager))) {
       navigate('/');
     }
-  }, [authLoading, isAuthenticated, isAdmin, navigate]);
+  }, [authLoading, isAuthenticated, isAdmin, isManager, navigate]);
 
   // Загрузка данных при переключении вкладок
   useEffect(() => {
@@ -207,18 +206,26 @@ const AdminPage = () => {
   }
 
   // Не авторизован — не показываем
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || (!isAdmin && !isManager)) {
     return null;
   }
+
+  const pageTitle = isAdmin ? 'Админ-панель' : 'Панель менеджера';
+  const pageSubtitle = isAdmin 
+    ? 'Управляйте товарами в каталоге: добавляйте новые композиции, меняйте цены и статусы отображения.'
+    : 'Управляйте заказами и просматривайте каталог товаров.';
+
+  // Определяем доступные разделы для менеджера
+  const availableSections = isAdmin 
+    ? ['products', 'orders', 'users']
+    : ['orders', 'products'];
 
   return (
     <div className="page admin-page">
       <header className="page__header">
         <div>
-          <h2 className="page__title">Админ-панель</h2>
-          <p className="page__subtitle">
-            Управляйте товарами в каталоге: добавляйте новые композиции, меняйте цены и статусы отображения.
-          </p>
+          <h2 className="page__title">{pageTitle}</h2>
+          <p className="page__subtitle">{pageSubtitle}</p>
         </div>
       </header>
 
@@ -226,24 +233,30 @@ const AdminPage = () => {
         <aside className="admin-sidebar">
           <h3 className="admin-sidebar__title">Разделы</h3>
           <ul className="admin-sidebar__menu">
-            <li 
-              className={`admin-sidebar__item ${activeSection === 'products' ? 'admin-sidebar__item--active' : ''}`}
-              onClick={() => setActiveSection('products')}
-            >
-              📦 Товары
-            </li>
-            <li 
-              className={`admin-sidebar__item ${activeSection === 'orders' ? 'admin-sidebar__item--active' : ''}`}
-              onClick={() => setActiveSection('orders')}
-            >
-              📋 Заказы
-            </li>
-            <li 
-              className={`admin-sidebar__item ${activeSection === 'users' ? 'admin-sidebar__item--active' : ''}`}
-              onClick={() => setActiveSection('users')}
-            >
-              👥 Пользователи
-            </li>
+            {availableSections.includes('orders') && (
+              <li 
+                className={`admin-sidebar__item ${activeSection === 'orders' ? 'admin-sidebar__item--active' : ''}`}
+                onClick={() => setActiveSection('orders')}
+              >
+                📋 Заказы
+              </li>
+            )}
+            {availableSections.includes('products') && (
+              <li 
+                className={`admin-sidebar__item ${activeSection === 'products' ? 'admin-sidebar__item--active' : ''}`}
+                onClick={() => setActiveSection('products')}
+              >
+                📦 Товары
+              </li>
+            )}
+            {availableSections.includes('users') && (
+              <li 
+                className={`admin-sidebar__item ${activeSection === 'users' ? 'admin-sidebar__item--active' : ''}`}
+                onClick={() => setActiveSection('users')}
+              >
+                👥 Пользователи
+              </li>
+            )}
           </ul>
         </aside>
 
@@ -311,12 +324,14 @@ const AdminPage = () => {
                         >
                           ✏️ Изменить
                         </button>
-                        <button
-                          className="btn btn--ghost btn--sm admin-btn--danger"
-                          onClick={() => handleDelete(product)}
-                        >
-                          🗑️
-                        </button>
+                        {isAdmin && (
+                          <button
+                            className="btn btn--ghost btn--sm admin-btn--danger"
+                            onClick={() => handleDelete(product)}
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </span>
                     </div>
                   ))

@@ -139,6 +139,7 @@ const useAuthHook = () => {
 
   const isAuthenticated = authState === AuthState.AUTHENTICATED;
   const isAdmin = user?.role === 'admin';
+  const isManager = user?.role === 'manager' || user?.role === 'admin';
   const isLoading = authState === AuthState.LOADING;
 
   return {
@@ -147,6 +148,7 @@ const useAuthHook = () => {
     error,
     isAuthenticated,
     isAdmin,
+    isManager,
     isLoading,
     login,
     register,
